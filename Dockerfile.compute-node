@@ -367,7 +367,7 @@ RUN case "${PG_VERSION}" in \
     echo "trusted = true" >> /usr/local/pgsql/share/extension/pg_hint_plan.control
 
 #########################################################################################
-# 
+#
 # Layer "rust extensions"
 # This layer is used to build `pgx` deps
 #
@@ -395,7 +395,7 @@ RUN curl -sSO https://static.rust-lang.org/rustup/dist/$(uname -m)-unknown-linux
 USER root
 
 #########################################################################################
-# 
+#
 # Layer "pg-jsonschema-pg-build"
 # Compile "pg_jsonschema" extension
 #
@@ -411,7 +411,7 @@ RUN wget https://github.com/supabase/pg_jsonschema/archive/caeab60d70b2fd3ae421e
     echo "trusted = true" >> /usr/local/pgsql/share/extension/pg_jsonschema.control
 
 #########################################################################################
-# 
+#
 # Layer "pg-graphql-pg-build"
 # Compile "pg_graphql" extension
 #
@@ -444,6 +444,22 @@ RUN git clone --depth=1 --single-branch https://github.com/kelvich/pg_tiktoken &
     cd pg_tiktoken && \
     cargo pgx install --release && \
     echo "trusted = true" >> /usr/local/pgsql/share/extension/pg_tiktoken.control
+
+#########################################################################################
+#
+# Layer "timescale-toolkit-build"
+# Compile "timescale-toolkit" extension
+#
+#########################################################################################
+
+FROM rust-extensions-build AS timescale-toolkit-pg-build
+
+RUN wget https://github.com/timescale/timescaledb-toolkit/archive/refs/tags/1.16.0.tar.gz -O timescale_toolkit.tar.gz && \
+    mkdir timescale_toolkit && cd timescale_toolkit && tar xvzf ../timescale_toolkit.tar.gz --strip-components=1 -C . && \
+    cd extension && \
+    cargo pgx install --release && \
+    cargo run --manifest-path ../tools/post-install/Cargo.toml -- pg_config && \
+    echo "trusted = true" >> /usr/local/pgsql/share/extension/timescaledb_toolkit.control
 
 #########################################################################################
 #
